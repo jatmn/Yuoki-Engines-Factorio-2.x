@@ -1,10 +1,10 @@
 # Yuoki Industries - Engines (Addon)
 
-The current build is **Engines 1.3.0** for **Factorio 2.1**. It requires Factorio **2.1.20 or newer** and **Yuoki Industries 1.3.0 or newer**. Engines 1.3.0 does not target Factorio 2.0.
+The current build is **Engines 1.3.1** for **Factorio 2.1**. It requires Factorio **2.1.20 or newer** and **Yuoki Industries 1.3.0 or newer**. Engines 1.3.1 does not target Factorio 2.0.
 
 ## Installation
 
-Install and enable both `Yuoki` and `yi_engines`. For a source checkout, put the source files in a `yi_engines_1.3.0` directory inside Factorio's mods directory, with `info.json` directly inside it. Use a compatible [Yuoki Industries release](https://github.com/jatmn/Yuoki-Factorio-2.x) alongside it.
+Install and enable both `Yuoki` and `yi_engines`. For a source checkout, put the source files in a `yi_engines_1.3.1` directory inside Factorio's mods directory, with `info.json` directly inside it. Use a compatible [Yuoki Industries release](https://github.com/jatmn/Yuoki-Factorio-2.x) alongside it.
 
 Space Age is optional; when enabled, it must also be 2.1.20 or newer. With Space Age, the green transport tubes require tungsten plates and a foundry. Back up existing saves before upgrading the game and mods together.
 

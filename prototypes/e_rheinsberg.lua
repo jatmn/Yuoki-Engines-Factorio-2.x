@@ -68,18 +68,20 @@ data:extend({
           },
         },
       },
-    },
-    working_visualisations = {
-      animation = {
-        filename = "__yi_engines__/graphics/entity/rheinsberg.png",
-        priority = "extra-high",
-        width = 192,
-        height = 192,
-        shift = { 0.34, -0.125 },
-        frame_count = 1,
-        line_length = 1,
+      working_visualisations = {
+        {
+          animation = {
+            filename = "__yi_engines__/graphics/entity/rheinsberg.png",
+            priority = "extra-high",
+            width = 192,
+            height = 192,
+            shift = { 0.34, -0.125 },
+            frame_count = 1,
+            line_length = 1,
+          },
+          light = { intensity = 0.7, size = 9.9, shift = { 0.0, 0.0 }, color = { r = 0.9, g = 0.5, b = 0.2 } },
+        },
       },
-      light = { intensity = 0.7, size = 9.9, shift = { 0.0, 0.0 }, color = { r = 0.9, g = 0.5, b = 0.2 } },
     },
     module_specification = { module_slots = 0 },
     allowed_effects = { "pollution" },
