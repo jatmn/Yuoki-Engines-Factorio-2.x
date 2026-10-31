@@ -278,7 +278,7 @@ data:extend({
       production_type = "input-output",
       filter = "y-mechanical-force",
     },
-    fluid_input = { name = "y-mechanical-force", amount = 0.0, minimum_temperature = 100.0 },
+    minimum_input_temperature = 100,
     energy_source = {
       type = "electric",
       usage_priority = "secondary-output",
@@ -338,7 +338,7 @@ data:extend({
       production_type = "input-output",
       filter = "steam",
     },
-    fluid_input = { name = "steam", amount = 0.0, minimum_temperature = 500.0 },
+    minimum_input_temperature = 500,
     energy_source = {
       type = "electric",
       usage_priority = "secondary-output",
@@ -370,3 +370,13 @@ data:extend({
     },
   },
 })
+
+-- Temperature acceptance moved out of the fluid box in Factorio 2.1.22.
+local major, minor, patch = mods["base"]:match("^(%d+)%.(%d+)%.(%d+)")
+if major == "2" and minor == "1" and tonumber(patch) < 22 then
+  for _, name in ipairs({ "ye_tfmw_generator-s", "ye_tfmw_turbine-s" }) do
+    local generator = data.raw.generator[name]
+    generator.fluid_box.minimum_temperature = generator.minimum_input_temperature
+    generator.minimum_input_temperature = nil
+  end
+end
