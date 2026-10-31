@@ -11,6 +11,9 @@ separate concurrency group so a later documentation-only push cannot cancel
 an earlier push's full Lua checks. The router is loaded from the
 comparison revision, so edits to the PR's router cannot disable their own
 validation. Initial installation runs all checks when that revision has no router.
+A final `CI result` job always runs and fails if any selected check failed or was
+cancelled; it is the stable check name to require in branch rules, because routed
+jobs are reported under different names when they run or are skipped.
 
 ## Which checks run
 
@@ -18,7 +21,7 @@ validation. Initial installation runs all checks when that revision has no route
 | --- | --- |
 | Shipped Lua | Lua syntax, Luacheck, StyLua and packaging |
 | Test-only Lua | Lua checks |
-| Python | Python AST syntax and CI/Pullfrog/package/release regressions |
+| Python or `.ruff.toml` | Python AST syntax, Ruff lint and CI/Pullfrog/package/release regressions |
 | Release Please config, hidden manifest or version file | Python checks, including release-contract validation |
 | Pullfrog helper or its tests | Python checks and actionlint |
 | Package builder or validator | Python checks and packaging |
@@ -34,9 +37,11 @@ old and new paths; deletions select their affected surface. Missing comparison
 revisions fail CI. The change job also checks diff whitespace.
 
 Lua checks use **Lua 5.2**, **Luacheck 1.2.0**, and **StyLua 2.5.2**. They check
-all tracked Lua files on relevant pushes to `main` and `release/1.3.0`. Pull requests check only
-added/modified Lua files, including renamed files and regular-file/symlink type
-changes. Deleted Lua files are excluded from the file manifest on both events.
+all tracked Lua files on relevant pushes to `main` and `release/1.3.0`, and on PRs that
+change `.luacheckrc`, `.stylua.toml` or `.github/workflows/lua.yml`, so lint, formatter
+or tool-version changes are validated against the baseline. Other pull requests check
+only added/modified Lua files, including renamed files and regular-file/symlink type
+changes. Luacheck and StyLua run as separate jobs so PR checks show which one failed. Deleted Lua files are excluded from the file manifest on both events.
 Configuration is parsed even when no Lua files changed. Filenames are passed
 as NUL-delimited data rather than shell source, with option termination for tools.
 
@@ -48,7 +53,7 @@ suppression is used.
 
 ## Local commands
 
-Install the versions above plus **actionlint 1.7.12** and Python 3. Run from the
+Install the versions above plus **actionlint 1.7.12**, **Ruff 0.17.3** and Python 3. Run from the
 repository root, substituting your changed Lua paths:
 
 ```sh
@@ -59,6 +64,7 @@ luacheck data.lua
 stylua --config-path .stylua.toml data.lua
 stylua --check --config-path .stylua.toml data.lua
 actionlint
+git ls-files -z -- '*.py' | xargs -0 -r ruff check --config .ruff.toml --
 python3 tools/test_ci_changes.py
 python3 tools/test_pullfrog_command.py
 python3 tools/test_package.py
@@ -76,13 +82,14 @@ git ls-files -z -- '*.lua' | xargs -0 -r stylua --check --config-path .stylua.to
 ```
 
 Python CI parses every tracked `.py` file with `ast.parse` without importing
-game code. Its syntax block in `.github/workflows/python.yml` can also be run
+game code, then lints them with Ruff's correctness rules from `.ruff.toml` (E9 + Pyflakes)
+(syntax errors, undefined names, unused imports/variables; no style rules). Its syntax block in `.github/workflows/python.yml` can also be run
 locally. Routing regressions use real Git histories, including a Lua change
 after 3,500 documentation files, unusual filenames, renames, deletions,
 missing revisions, router self-disable attempts, and both file-type transition
 directions on both events. Selection tests also prove that an untouched Lua
-syntax error fails push checks but is excluded from PR checks, including on a
-configuration-only change, and that untracked files are excluded. Lua CI runs the focused file-selection and compiler
+syntax error fails push checks and lint/formatter/workflow configuration PRs but is
+excluded from other PR checks, and that untracked files are excluded. Lua CI runs the focused file-selection and compiler
 tests even on Lua-workflow-only changes, including filenames beginning with `-`.
 Every workflow edit retains the existing Pullfrog authorization regression gate;
 Pullfrog helper edits also retain workflow linting.

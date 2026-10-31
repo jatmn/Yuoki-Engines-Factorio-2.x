@@ -2,6 +2,7 @@
 """Regressions for CI routing and Lua selection; no game or dependency mods are loaded."""
 from pathlib import Path
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -14,11 +15,20 @@ from ci_changes import classify
 ROUTER = Path(__file__).with_name('ci_changes.py').resolve()
 
 
+# Steps that every listed job must run; each copy must stay identical, env included.
+REPEATED_STEPS = {('lua.yml', 'Select Lua files for this event'): 2}
+
+
 def workflow_block(workflow, name):
     text = (ROUTER.parents[1] / '.github/workflows' / workflow).read_text()
-    step = text.split(f'      - name: {name}\n', 1)[1].split('      - name:', 1)[0]
+    steps = [re.split(r'\n(?=      - |  \S)', step, maxsplit=1)[0]
+             for step in text.split(f'      - name: {name}\n')[1:]]
+    copies = REPEATED_STEPS.get((workflow, name), 1)
+    if len(steps) != copies or len(set(steps)) != 1:
+        raise AssertionError(f'{workflow}: expected {copies} identical {name!r} step(s), '
+                             f'found {len(steps)} with {len(set(steps))} distinct definition(s)')
     lines = []
-    for line in step.split('        run: |\n', 1)[1].splitlines():
+    for line in steps[0].split('        run: |\n', 1)[1].splitlines():
         if line.strip() and not line.startswith('          '):
             break
         lines.append(line)
@@ -80,9 +90,7 @@ class RoutingTests(unittest.TestCase):
                                    cwd=root, env={**os.environ, 'BASE': base, 'EVENT_NAME': event}, check=True)
 
     def test_lua_workflow_selects_type_changes(self):
-        workflow = ROUTER.parents[1] / '.github/workflows/lua.yml'
-        step = workflow.read_text().split('      - name: Select Lua files for this event\n', 1)[1]
-        selection = textwrap.dedent(step.split('        run: |\n', 1)[1].split('      - name:', 1)[0])
+        selection = workflow_block('lua.yml', 'Select Lua files for this event')
         for starts_as_symlink in (False, True):
             with self.subTest(starts_as_symlink=starts_as_symlink), \
                     tempfile.TemporaryDirectory(prefix='yuoki-ci-type-') as directory:
@@ -148,12 +156,14 @@ class RoutingTests(unittest.TestCase):
                 (root / name).write_text('return true\n')
             git('add', '.'); git('commit', '-qm', 'rename, delete and add Lua')
             (root / 'untracked.lua').write_text('return (\n')
-            for config_only in (False, True):
+            # Lint/formatter/toolchain changes recheck the whole baseline on PRs too.
+            for config_only in (False, '.luacheckrc', '.stylua.toml', '.github/workflows/lua.yml'):
                 if config_only:
                     base = git('rev-parse', 'HEAD')
-                    with (root / '.luacheckrc').open('a') as config:
+                    (root / config_only).parent.mkdir(parents=True, exist_ok=True)
+                    with (root / config_only).open('a') as config:
                         config.write('\n-- configuration-only change\n')
-                    git('add', '.luacheckrc'); git('commit', '-qm', 'configuration only')
+                    git('add', config_only); git('commit', '-qm', 'configuration only')
                 for event in ('pull_request', 'push'):
                     with self.subTest(config_only=config_only, event=event):
                         env = {**os.environ, 'BASE': base, 'EVENT_NAME': event}
@@ -161,8 +171,8 @@ class RoutingTests(unittest.TestCase):
                                         workflow_block('lua.yml', 'Select Lua files for this event')],
                                        cwd=root, env=env, check=True)
                         manifest = (root / '.cache/ci-lua-files').read_bytes()
-                        expected = changed | {'untouched.lua'} if event == 'push' else (
-                            set() if config_only else changed)
+                        full = event == 'push' or bool(config_only)
+                        expected = changed | {'untouched.lua'} if full else changed
                         self.assertEqual(set(filter(None, manifest.split(b'\0'))),
                                          {os.fsencode(name) for name in expected})
                         if expected:
@@ -170,7 +180,7 @@ class RoutingTests(unittest.TestCase):
                         checked = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c',
                                                   workflow_block('lua.yml', 'Check Lua syntax')],
                                                  cwd=root, env=env, capture_output=True, text=True)
-                        if event == 'push':
+                        if full:
                             self.assertNotEqual(checked.returncode, 0)
                             self.assertIn('untouched.lua', checked.stderr)
                         else:
@@ -184,6 +194,7 @@ class RoutingTests(unittest.TestCase):
             (['tests/prototypes.py', 'tools/test.py'], {'python'}),
             (['tools/pullfrog_command.py'], {'python', 'workflows'}),
             (['tools/test_pullfrog_command.py'], {'python', 'workflows'}),
+            (['.ruff.toml'], {'python'}),
             (['.github/release-please-config.json'], {'python'}),
             (['.github/.release-please-manifest.json'], {'python'}),
             (['.github/version.txt'], {'python'}),
