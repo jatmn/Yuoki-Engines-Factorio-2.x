@@ -18,7 +18,8 @@ validation. Initial installation runs all checks when that revision has no route
 | --- | --- |
 | Shipped Lua | Lua syntax, Luacheck, StyLua and packaging |
 | Test-only Lua | Lua checks |
-| Python | Python AST syntax and CI/Pullfrog/package regressions |
+| Python | Python AST syntax and CI/Pullfrog/package/release regressions |
+| Release Please config, hidden manifest or version file | Python checks, including release-contract validation |
 | Pullfrog helper or its tests | Python checks and actionlint |
 | Package builder or validator | Python checks and packaging |
 | Metadata, locale, graphics and other shipped files | Packaging |
@@ -61,6 +62,7 @@ actionlint
 python3 tools/test_ci_changes.py
 python3 tools/test_pullfrog_command.py
 python3 tools/test_package.py
+python3 tools/test_prepare_release.py
 python3 tools/package.py
 python3 tools/validate_package.py
 ```
