@@ -62,6 +62,17 @@ The two HP gearbox recipes were already commented out in the oldest imported
 source, so their obsolete migration entries do not justify inventing recipes.
 The ancient `y-tut` item/entity targets and recipe-reset API still exist.
 
+## Factory setting changes on existing saves
+
+Keep all three factory presets. Before changing to a mode with fewer module
+slots, remove installed modules from C1, Y2 and P3 factories. The setting tooltip
+now warns about this requirement. Factorio shrinks the module inventories before
+Lua migrations run; a later callback cannot recover the deleted counts or quality.
+A 2.1.24 save with 12 normal and 12 rare speed modules retained all 24 when
+reloaded unchanged, 19 when changing Overpowered to Balanced, and 8 when changing
+to No Changes. No overflow remained in other machine inventories or on the ground.
+This is a warning about the existing engine behavior; the presets are unchanged.
+
 ## Validation and limits
 
 The exact packaged candidate was exercised on official Factorio **2.1.24 build
