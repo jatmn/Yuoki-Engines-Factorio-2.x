@@ -12,15 +12,6 @@ local productivity_item_list = {
   "ye_buechsenblech",
 }
 
-for _, module in pairs(data.raw.module) do
-  if module.effect and module.limitation then
-    for effect_name in pairs(module.effect) do
-      if effect_name == "productivity" then
-        for _, item in pairs(productivity_item_list) do
-          table.insert(module.limitation, item)
-        end
-        break
-      end
-    end
-  end
+for _, name in ipairs(productivity_item_list) do
+  data.raw.recipe[name].allow_productivity = true
 end

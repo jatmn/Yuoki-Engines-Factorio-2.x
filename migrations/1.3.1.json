@@ -1,0 +1,12 @@
+{
+  "recipe": [
+    ["y-shaft-recipe", "y-mftrans-shaft"],
+    ["y-shaft-r-recipe", "y-mftrans-shaft-red"],
+    ["y-shaft-ground-recipe", "y-mftrans-shaft-ground"],
+    ["y-shaft-ground-r-recipe", "y-mftrans-shaft-ground-red"],
+    ["y-shaft", "y-mftrans-shaft"],
+    ["y-shaft-r", "y-mftrans-shaft-red"],
+    ["y-shaft-ground", "y-mftrans-shaft-ground"],
+    ["y-shaft-ground-r", "y-mftrans-shaft-ground-red"]
+  ]
+}
