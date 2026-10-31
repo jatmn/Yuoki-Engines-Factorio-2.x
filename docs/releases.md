@@ -3,8 +3,7 @@
 The **Release Please** workflow maintains a **draft release PR** on `main`.
 Continue merging normal changes and adding player-facing entries to
 `changelog.txt` while that PR is open. No release is published until you mark
-the release PR ready and merge it. Merging the workflow setup PR only enables
-this process; it does not publish 1.3.1.
+the release PR ready and merge it.
 
 ## First release: 1.3.1
 
@@ -22,30 +21,6 @@ Release Please updates `info.json`, `.github/version.txt` and
 `changelog.txt` or create a second generated changelog. Its PR body summarizes
 Conventional Commits; published release notes use only the matching newest
 author-written section of `changelog.txt`.
-
-## One-time setup
-
-1. In [Actions settings](https://github.com/jatmn/Yuoki-Engines-Factorio-2.x/settings/actions),
-   enable **Allow GitHub Actions to create and approve pull requests**. Actions
-   must be enabled and allow the pinned actions in this workflow.
-2. Create a [fine-grained PAT](https://github.com/settings/personal-access-tokens/new)
-   owned by `jatmn`, selecting only `Yuoki-Engines-Factorio-2.x`, with Contents,
-   Issues and Pull requests **Read and write**. Record its expiration and
-   replace it before expiry. A token limited to the parent repository cannot
-   access this repository.
-3. In [Actions secrets](https://github.com/jatmn/Yuoki-Engines-Factorio-2.x/settings/secrets/actions),
-   choose **New repository secret**, name it `RELEASE_PLEASE_TOKEN`, paste the
-   token value and save. The parent repository's secret is not shared here.
-4. Review checks and merge the setup PR. Open the
-   [Release Please workflow](https://github.com/jatmn/Yuoki-Engines-Factorio-2.x/actions/workflows/release-please.yml)
-   and verify the run triggered on `main` succeeds. If needed, select **Run
-   workflow**, branch `main`, and leave `retry_tag` blank.
-5. In [pull requests](https://github.com/jatmn/Yuoki-Engines-Factorio-2.x/pulls),
-   verify the new release PR is **Draft**, targets `main`, proposes **1.3.1**,
-   and sets the manifest to `{".": "1.3.1"}`. The version file and `info.json`
-   already contain 1.3.1 and may have no diff. Verify selected CI checks run
-   automatically; unaffected jobs may be skipped. No release should be
-   published at this stage. Leave this PR in draft until release day.
 
 ## Maintainer sequence
 
@@ -71,21 +46,7 @@ Engines also requires the separately installed parent mod **Yuoki 1.3.0 or later
 The Engines ZIP does not bundle Yuoki. Existing incompatible mods listed in
 `info.json` still cannot be enabled alongside Engines.
 
-## Permissions and failures
-
-The workflow uses `GITHUB_TOKEN` by default and requests contents, issues and
-pull-request write permissions. Repository **Settings → Actions → General →
-Allow GitHub Actions to create and approve pull requests** must be enabled.
-The repository's default token permissions can remain read-only: this workflow
-explicitly requests the permissions it needs.
-
-For unattended CI on release PRs, supply the repository Actions secret
-**`RELEASE_PLEASE_TOKEN`**, using a fine-grained PAT with this repository's
-Contents, Issues and Pull requests read/write access. With `GITHUB_TOKEN`,
-GitHub documents an **Approve workflows to run** prompt for checks on PRs
-created or updated by automation. A PAT allows those checks to run without
-that approval. See [GitHub's triggering rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow#triggering-a-workflow-from-a-workflow).
-The publication workflow validates the package regardless of PR CI.
+## Release failures and recovery
 
 The workflow trusts code merged into `main`, including the release tooling.
 Credentials are scoped to API steps, and checkout does not persist them.
@@ -207,7 +168,6 @@ build development ZIPs without requiring a merged release manifest.
 - [Release Please bootstrap and manifest configuration](https://github.com/googleapis/release-please/blob/main/docs/manifest-releaser.md)
   and [configuration schema](https://github.com/googleapis/release-please/blob/main/schemas/config.json):
   initial version, bootstrap boundary, draft PR/release settings and JSON updates.
-- [Release Please Action permissions and token behavior](https://github.com/googleapis/release-please-action#other-actions-on-release-please-prs).
 
 ZIP validation checks tracked membership, exact source bytes, required notices,
 CRC and checksum. It does not replace Factorio engine, save or graphics testing
