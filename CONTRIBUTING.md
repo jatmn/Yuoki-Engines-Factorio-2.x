@@ -19,7 +19,8 @@ a PR update; rerun affected checks after repairs. See
   untouched Lua files alone during ordinary contribution work; the full baseline
   is enforced on relevant `main` and `release/1.3.0` pushes.
 - Python/tools: parse tracked Python files without importing or executing game
-  code, lint them with **Ruff 0.17.3** (`ruff check --config .ruff.toml tools`)
+  code, lint every tracked Python file with **Ruff 0.17.3**
+  (`git ls-files -z -- '*.py' | xargs -0 -r ruff check --config .ruff.toml --`)
   and run `python3 tools/test_ci_changes.py` plus
   `python3 tools/test_pullfrog_command.py` and `python3 tools/test_package.py`.
   Release tooling also requires `python3 tools/test_prepare_release.py`.

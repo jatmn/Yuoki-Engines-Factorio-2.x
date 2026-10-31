@@ -64,7 +64,7 @@ luacheck data.lua
 stylua --config-path .stylua.toml data.lua
 stylua --check --config-path .stylua.toml data.lua
 actionlint
-ruff check --config .ruff.toml tools
+git ls-files -z -- '*.py' | xargs -0 -r ruff check --config .ruff.toml --
 python3 tools/test_ci_changes.py
 python3 tools/test_pullfrog_command.py
 python3 tools/test_package.py
