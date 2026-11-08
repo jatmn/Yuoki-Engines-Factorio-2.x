@@ -4,12 +4,14 @@ from copy import deepcopy
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
 import unittest
 
 HELPER = Path(__file__).with_name('pullfrog_command.py').resolve()
+WORKFLOW = HELPER.parents[1] / '.github' / 'workflows' / 'pullfrog.yml'
 EVENT = {
     'action': 'created',
     'repository': {'full_name': 'jatmn/Yuoki-Engines-Factorio-2.x'},
@@ -17,6 +19,13 @@ EVENT = {
     'comment': {'id': 123, 'user': {'id': 12479882}, 'body': '@pullfrog review this PR'},
     'issue': {'number': 7, 'pull_request': {'url': 'https://api.github.com/repos/jatmn/Yuoki-Engines-Factorio-2.x/pulls/7'}},
 }
+
+
+def workflow_action_version():
+    pins = re.findall(r'uses:\s*pullfrog/pullfrog@[0-9a-f]{40}\s*#\s*v(\S+)', WORKFLOW.read_text(encoding='utf-8'))
+    if len(pins) != 1:
+        raise AssertionError(f'expected one pinned pullfrog/pullfrog action in {WORKFLOW}, found {pins}')
+    return pins[0]
 
 
 class OwnerCommandTests(unittest.TestCase):
@@ -52,6 +61,7 @@ class OwnerCommandTests(unittest.TestCase):
                 self.assertEqual(fields['authorized'], 'true')
                 payload = json.loads(fields['payload'])
                 self.assertTrue(payload['~pullfrog'])
+                self.assertEqual(payload['version'], workflow_action_version())
                 self.assertEqual(payload['triggerer'], 'jatmn')
                 self.assertEqual(payload['event'].get('authorPermission'), 'admin')
                 self.assertEqual(payload['event']['issue_number'], 7)
